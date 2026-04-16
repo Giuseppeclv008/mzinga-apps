@@ -19,4 +19,7 @@ export class MailUtils {
     }
     return result;
   }
+
+
+  //TO DO: add here the flag to disable sending entirely and just log the message, useful for development and testing without sending real emails
 }

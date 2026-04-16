@@ -33,9 +33,11 @@ const Communications: CollectionConfig = {
   hooks: {
     afterChange: [
       async ({ doc }) => {
-        const { tos, ccs, bccs, subject, body } = doc;
+        const { tos, ccs, bccs, subject, body } = doc; // it is like writing an email, tos are the main recipients, ccs are the copied recipients, bccs are the blind copied recipients
+                                                      // the body is a rich text, so it can contain text, images, files, etc. we need to process the body to convert it to HTML and to get the URLs of the images and files
+                                                      // it's like wrting tos = doc.tos, ccs = doc.ccs, bccs = doc.bccs, subject = doc.subject, body = doc.body but with destructuring
         for (const part of body) {
-          if (part.type !== "upload") {
+          if (part.type !== "upload") { // Only process upload parts like images or files, skip text parts
             continue;
           }
           const relationToSlug = part.relationTo;
@@ -48,7 +50,7 @@ const Communications: CollectionConfig = {
             ...doc,
           };
         }
-        const html = TextUtils.Serialize(body || "");
+        const html = TextUtils.Serialize(body || ""); // Convert rich text to HTML, if the body is undefined, use an empty string
         try {
           const users = await payload.find({
             collection: tos[0].relationTo,
@@ -103,6 +105,7 @@ const Communications: CollectionConfig = {
               }),
             );
           }
+          // Wait for all email sending promises to resolve, but don't throw if any of them fail (errors are already logged in the catch above)
           await Promise.all(promises.filter((p) => Boolean(p)));
           return doc;
         } catch (err) {
